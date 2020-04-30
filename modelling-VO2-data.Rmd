@@ -7,6 +7,8 @@ output: html_document
 
 # Data Source
 
+***
+
 The data we will be using for this activity can be found in the **vo2-max_data.xlsx** file and contains data from 100 participants. It has been sourced from an excellent guide for multiple linear regression on [www.statistics.laerd.com](www.statistics.laerd.com) and consists of the following variables:
 
 **1.** subject_id: unique subject identification number
@@ -23,11 +25,84 @@ The data we will be using for this activity can be found in the **vo2-max_data.x
 
 Each row is one subjects data.
 
+***
+***
 
 # Our Question
+
+***
 
 This data has been captured to develop a model to estimate VO2max (response variable) based on a persons age, weight, gender and heart rate during a 20 minute submaximal cycling test (explanatory/predictor variables). This would allow future participants to not have to complete a strenuous maximal running treadmill test (which might deter some participants) and rather, to just complete a less strenuous submaximal test.
 
 We can use multiple linear regression to develop this model.
 
 
+***
+***
+
+
+# Reading in the Data
+
+***
+
+```{r load packages, message=FALSE}
+
+library(tidyverse) # loads tidyverse package
+
+library(broom) # loads broom package
+
+library(readxl) # loads readxl package
+
+
+```
+
+***
+
+```{r read in data, results='hide'}
+
+dat <- read_excel("data/vo2-max_data.xlsx") # reads in data file, and saves to object dat
+
+```
+
+***
+
+```{r checking str}
+
+str(dat) # checks structure of dat
+
+```
+
+***
+
+```{r check head}
+
+head(dat) # shows first 6 rows of dat
+
+```
+
+***
+
+```{r check tail}
+
+tail(dat) # shows last 6 rows of data
+
+```
+
+***
+***
+
+# Data Transformation
+
+***
+
+As gender is a categorical vector, its class must be changed from 'numeric' to 'factor'.
+
+***
+
+```{r change vector}
+
+dat$gender <- as.factor(dat$gender) # changes gender column in data set from numerical vector to factor vector
+
+str(dat) # shows new structure of dat
+
+```
