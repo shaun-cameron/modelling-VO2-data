@@ -2,8 +2,17 @@
 title: "Modelling VO2 Data"
 author: "Shaun Cameron"
 date: "30/04/2020"
-output: html_document
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
 ---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+```
 
 # Data Source
 
@@ -101,8 +110,859 @@ As gender is a categorical vector, its class must be changed from 'numeric' to '
 
 ```{r change vector}
 
-dat$gender <- as.factor(dat$gender) # changes gender column in data set from numerical vector to factor vector
+dat$gender <- as.factor(dat$gender) # changes gender column in data set from numerical vector
+# to factor vector
+
+levels(dat$gender) <- c("female", "male")
 
 str(dat) # shows new structure of dat
 
 ```
+
+***
+***
+
+# Exploratory Data Analysis
+
+***
+
+## Age vs VO2 Max
+
+***
+
+```{r age plot, message=FALSE, echo=FALSE, fig.align='center'}
+
+ggplot(dat, aes(age, vo2_max)) +
+  geom_point(colour = "aquamarine") +
+  geom_smooth(method = "lm", colour = "gold") +
+  theme(plot.background = element_rect(fill = "lightcoral"),
+        panel.background = element_rect(fill = "darkblue"),
+        axis.line = element_line(colour = "black"))
+
+```
+
+***
+
+```{r age correlation}
+
+cor(dat$age, dat$vo2_max) # display correlation coefficient of age vs vo2 max
+
+```
+
+***
+***
+
+## Weight vs VO2 Max
+
+***
+
+```{r weight plot, message=FALSE, echo=FALSE, fig.align='center'}
+
+ggplot(dat, aes(weight, vo2_max)) +
+  geom_point(colour = "darkgoldenrod4") +
+  geom_smooth(method = "lm", colour = "purple1") +
+  theme(plot.background = element_rect(fill = "deepskyblue"),
+        panel.background = element_rect(fill = "darkolivegreen1"),
+        axis.line = element_line(colour = "black"))
+
+```
+
+***
+
+```{r weight correlation}
+
+cor(dat$weight, dat$vo2_max) # display correlation coefficient of weight vs vo2 max
+
+```
+
+***
+***
+
+## Heart Rate vs VO2 Max
+
+***
+
+```{r heart rate plot, message=FALSE, echo=FALSE, fig.align='center'}
+
+ggplot(dat, aes(heart_rate, vo2_max)) +
+  geom_point(colour = "seashell") +
+  geom_smooth(method = "lm", colour = "palegreen") +
+  theme(plot.background = element_rect(fill = "papayawhip"),
+        panel.background = element_rect(fill = "orchid4"),
+        axis.line = element_line(colour = "black"))
+
+```
+
+***
+
+```{r heartrate correlation}
+
+cor(dat$heart_rate, dat$vo2_max) # display correlation coefficient of heart rate vs vo2 max
+
+```
+
+***
+***
+
+## Gender vs VO2 Max
+
+***
+
+```{r gender plot, message=FALSE, echo=FALSE, fig.align='center'}
+
+ggplot(dat, aes(gender, vo2_max)) +
+  geom_boxplot(colour = "tan2", fill = "tomato4") +
+  theme(plot.background = element_rect(fill = "orangered"),
+        panel.background = element_rect(fill = "powderblue"),
+        axis.line = element_line(colour = "black"))
+  
+
+```
+
+***
+
+``` {r gender stats}
+
+dat %>%
+ group_by(gender) %>%
+ summarise(mean = mean(vo2_max), median = median(vo2_max), iqr = IQR(vo2_max)) 
+
+```
+
+***
+***
+
+### Comments on Strength & Direction of dat Variables vs VO2 Max
+
+***
+
+**Age:** weak negative linear relationship
+
+**Weight:** moderate linear relationship
+
+**Heart Rate:** Virtually no linear relationship
+
+**Gender:** Males have higher mean, median and inter quartile range (males less consistent?)
+
+***
+***
+
+# Accounting for Gender
+
+***
+
+The following graphs are the same as their above counterparts, separated by gender.
+
+***
+***
+
+## Age
+
+***
+
+```{r age/gender plot, message=FALSE, echo=FALSE, fig.align='center'}
+
+ggplot(dat, aes(age, vo2_max, colour = gender)) +
+  geom_point(aes(colour = gender)) +
+  scale_color_manual(values = c("aquamarine", "gold")) +
+  geom_smooth(method = "lm") +
+  theme(plot.background = element_rect(fill = "lightcoral"),
+        panel.background = element_rect(fill = "darkblue"),
+        axis.line = element_line(colour = "black")) +
+  facet_wrap(~ gender)
+  
+
+```
+
+
+***
+
+**Male Correlation:** 
+```{r age male correlation, echo=FALSE}
+
+  male <- filter(dat, gender == "male") # filters out females from dat, and saves to new object "male" 
+
+  cor(male$age, male$vo2_max) # display correlation coefficient of age vs vo2 max plot
+
+```
+
+**Female Correlation:**
+
+```{r age female correlation, echo=FALSE}
+
+  female <- filter(dat, gender == "female") # filters out males from dat, and saves to new object "female" 
+
+  cor(female$age, female$vo2_max) # display correlation coefficient of age vs vo2 max plot
+
+```
+
+***
+***
+
+## Weight
+
+***
+
+```{r weight/gender plot, message=FALSE, echo=FALSE, fig.align='center'}
+
+ggplot(dat, aes(weight, vo2_max, colour = gender)) +
+  geom_point(aes(colour = gender)) +
+  scale_color_manual(values = c("darkgoldenrod4", "purple1")) +
+  geom_smooth(method = "lm") +
+  theme(plot.background = element_rect(fill = "deepskyblue"),
+        panel.background = element_rect(fill = "darkolivegreen1"),
+        axis.line = element_line(colour = "black")) +
+  facet_wrap(~ gender)
+  
+
+```
+
+***
+
+**Male Correlation:** 
+```{r weight male correlation, echo=FALSE}
+
+  cor(male$weight, male$vo2_max) # display correlation coefficient of weight vs vo2 max plot
+
+```
+
+**Female Correlation:**
+
+```{r weight female correlation, echo=FALSE}
+
+  cor(female$weight, female$vo2_max) # display correlation coefficient of weight vs vo2 max plot
+
+```
+
+***
+***
+
+## Heart Rate
+
+***
+
+```{r heart rate/gender plot, message=FALSE, echo=FALSE, fig.align='center'}
+
+ggplot(dat, aes(heart_rate, vo2_max, colour = gender)) +
+  geom_point(aes(colour = gender)) +
+  scale_color_manual(values = c("seashell", "palegreen")) +
+  geom_smooth(method = "lm") +
+  theme(plot.background = element_rect(fill = "papayawhip"),
+        panel.background = element_rect(fill = "orchid4"),
+        axis.line = element_line(colour = "black")) +
+  facet_wrap(~ gender)
+  
+
+```
+
+***
+
+**Male Correlation:** 
+```{r heartrate male correlation, echo=FALSE}
+
+  cor(male$heart_rate, male$vo2_max) # display correlation coefficient of heartrate vs vo2 max plot
+
+```
+
+**Female Correlation:**
+
+```{r heartrate female correlation, echo=FALSE}
+
+  cor(female$heart_rate, female$vo2_max) # display correlation coefficient of heartrate vs vo2 max plot
+
+```
+
+***
+***
+
+### Comments on Strength & Direction of dat Variables vs VO2 Max, Accounting for Gender
+
+***
+
+**Age:** weak negative linear relationship (male & female)
+
+**Weight:** moderate negative linear (male & female)
+
+**Heart Rate:** weak negative linear relationship (male & female)
+
+Whilst the interpretation of the relatioinships remain the same, the correlation coefficient is a lot closer to -1 when separated by gender, indicating a stronger relationship. Weight seems to be the most significant factor in determining VO2 max out of the three variables tested.
+
+***
+***
+
+## Early Testing for Multicollinearity
+
+***
+
+```{r early multicollinearity, echo=FALSE}
+
+pairs(formula = ~ age + weight + heart_rate, data = dat) # tests if there is any relationship 
+# between explanatory variables
+
+```
+
+***
+
+An early look at the data suggests that there is no discernable relationship between the explanatory variables.
+
+***
+***
+
+# Multiple Linear Regression
+
+***
+***
+
+## Males
+
+***
+
+```{r multiple linear regression}
+
+fit_m <- lm(vo2_max ~ age + weight + heart_rate, data = male) # creates linear regression 
+# model of predicted vo2 max levels against age AND weight AND heart rate,
+# when the gender is male
+
+summary(fit_m)
+
+tidy(fit_m, conf.int = TRUE)
+
+
+```
+
+***
+***
+
+### Interpretation
+
+For males, when age, weight and gender are 0, the expected VO2 Max is 98.098 mL/kg/min.
+
+When age is increased by 1 year, VO2 Max decreases by 0.212 mL/kg/min, when weight and heart rate do not change.
+
+When weight is increased by 1kg, VO2 max decreases by 0.356 mL/kg/min, when age and heart rate do not change.
+
+When heart rate is increased by 1 bpm, VO2 max decreases by 0.105 mL/kg/min, when age and weight do not change.
+
+This formula can be expressed as **V = -0.212A + -0.356W + -0.105H + 98.099**, where
+
+**V** = VO2 Max
+
+**A** = Age (years)
+
+**W** = Weight (kg)
+
+**H** = Heart Rate (bpm)
+
+**98.099** = y Intercept
+ 
+ 
+***
+***
+
+## Females
+
+***
+
+```{r multiple linear regression female}
+
+fit_f <- lm(vo2_max ~ age + weight + heart_rate, data = female) # creates linear 
+# regression model of predicted vo2 max levels against age AND weight AND heart rate, 
+# when the gender is female
+
+summary(fit_f)
+
+tidy(fit_f, conf.int = TRUE)
+
+
+```
+
+***
+***
+
+### Interpretation
+
+For females, when age, weight and gender are 0, the expected VO2 Max is 100.448 mL/kg/min.
+
+When age is increased by 1 year, VO2 Max decreases by 0.145 mL/kg/min, when weight and heart rate do not change.
+
+When weight is increased by 1kg, VO2 max decreases by 0.485 mL/kg/min, when age and heart rate do not change.
+
+When heart rate is increased by 1 bpm, VO2 max decreases by 0.162 mL/kg/min, when age and weight do not change.
+
+This formula can be expressed as **V = -0.145A + -0.485W + -0.162H + 100.448**, where
+
+**V** = VO2 Max
+
+**A** = Age (years)
+
+**W** = Weight (kg)
+
+**H** = Heart Rate (bpm)
+
+**100.448** = y Intercept
+
+***
+***
+
+# Independence of Observations
+ 
+ ***
+ 
+## Males
+
+***
+
+```{r DW test male, echo=FALSE}
+
+car::durbinWatsonTest(fit_m) # determines independence of observations using Durbin Watson test
+
+```
+
+***
+***
+
+## Females
+
+***
+
+```{r DW test female, echo=FALSE}
+
+car::durbinWatsonTest(fit_f) # determines independence of observations using Durbin Watson test
+
+```
+
+***
+***
+
+### Interpretation
+
+The D-W statistic values are very close to 2 (the ideal value), indicating that there is independence of observations.
+
+***
+***
+
+# Outliers
+
+***
+
+## Males
+
+***
+
+```{r male outlier detection, echo=FALSE, fig.align='center'}
+
+std_res_m <- rstandard(fit_m) # calculates standardised residuals of fit (residuals divided by their st.dev)
+
+points_m <- 1 : length(std_res_m) # enables values of std_res_m to be plotted on a curve
+
+res_labels_m <- if_else(abs(std_res_m) >= 2.5, paste(points_m), "") # if the values of object "std_res_m" equal
+# or exceed 2.5, the data will be highlighted in the object "points_m". If values do not exceed or equal 2.5, 
+# nothing will be highlighted.
+
+ggplot(data = NULL, aes(points_m, std_res_m)) +
+  geom_point() +
+  geom_text(aes(label = res_labels_m), nudge_y = 0.3) +
+  ylim(c(-4, 4)) +
+  geom_hline(yintercept = c(-3 , 3), colour = "red", linetype = "dashed")
+
+```
+
+The above plot indicates that all values lie within the limits, although point 24 has been highlighted as a point of interest. Therefore, there are no outliers.
+
+***
+***
+
+## Females
+
+***
+
+```{r female outlier detection, echo=FALSE, fig.align='center'}
+
+std_res_f <- rstandard(fit_f)
+
+points_f <- 1 : length(std_res_f)
+
+res_labels_f <- if_else(abs(std_res_f) >= 2.5, paste(points_f), "")
+
+ggplot(data = NULL, aes(points_f, std_res_f)) +
+  geom_point() +
+  geom_text(aes(label = res_labels_f), nudge_y = 0.3) +
+  ylim(c(-4, 4)) +
+  geom_hline(yintercept = c(-3 , 3), colour = "red", linetype = "dashed")
+
+```
+
+The above plot indicates that the females do have an outlier, and one point of interest. Whether not they have significant leverage or influence will be investigated.
+
+***
+***
+
+# Leverage Points
+
+***
+
+## Males
+
+***
+
+```{r male hats values, echo=FALSE, fig.align='center'}
+
+hats_m <- hatvalues(fit_m) # create object with "hat diagonal" values
+
+ggplot(NULL, aes(points_m, hats_m)) +
+  geom_point()
+
+```
+
+The above plot indicates that there aren't any points with significant leverage.
+
+
+***
+***
+
+## Females
+
+***
+
+```{r female hats values,echo=FALSE, fig.align='center'}
+
+hats_f <- hatvalues(fit_f) 
+
+hat_labels_f <- if_else(hats_f >= 0.2, paste(points_f), "") # if the values of object "hats_f" equal or exceed
+# 0.2, the data will be highlighted in the object "points_f". If values do not exceed or equal 0.2, 
+# nothing will be highlighted.
+
+ggplot(NULL, aes(points_f, hats_f)) +
+  geom_point() +
+  geom_text(aes(label = hat_labels_f), nudge_y = 0.01)
+
+```
+
+The above plot indicates that there are two points with potential leverage, points 1 and 25. Although 24 is highlighted, I don't consider it a point with potential for leverage. Interstingly, the point considered an outlier isn't shown to have much potential for leverage here.
+
+***
+***
+
+# Influential Points
+
+***
+***
+
+## Males
+
+***
+
+```{r male cooks, echo=FALSE, fig.align='center'}
+
+cook_m <- cooks.distance(fit_m) # measures collective change in coefficients of fit_m when a point is deleted
+
+cook_labels_m <- if_else(cook_m >= 0.2, paste(points_m), "") # if the values of object "cook_m" equal or exceed
+# 0.2, the data will be highlighted in the object "points_m". If values do not exceed or equal 0.2, 
+# nothing will be highlighted.
+
+ggplot(NULL, aes(points_m, cook_m)) +
+  geom_point() +
+  geom_text(aes(label = cook_labels_m), nudge_y = 0.01)
+
+
+
+```
+
+The above graph shows that point 43 has a high chance of influencing the regression fit, so it will be removed from the data and the model will be run again.
+
+***
+***
+
+## Females
+
+***
+
+```{r female cooks, echo=FALSE, fig.align='center'}
+
+cook_f <- cooks.distance(fit_f) # measures collective change in coefficients of fit_f when a point is deleted
+
+cook_labels_f <- if_else(cook_f >= 0.2, paste(points_f), "") # if the values of object "cook_f" equal or exceed
+# 0.2, the data will be highlighted in the object "points_f". If values do not exceed or equal 0.2, 
+# nothing will be highlighted.
+
+ggplot(NULL, aes(points_f, cook_f)) +
+  geom_point() +
+  geom_text(aes(label = cook_labels_f), nudge_y = 0.015)
+
+```
+
+The above graph shows that points 1, 14 & 43 have a high chance of influencing the regression fit, so they will be removed from the data and the model will be run again.
+
+
+***
+***
+
+# Re-running the Regression Model Without the Points of Siginificant Influence
+
+***
+***
+
+## Males
+
+***
+
+```{r new model male}
+
+male_new <- male %>%
+  filter(subject_id != "73")
+
+fit_m_new <- lm(vo2_max ~ age + weight + heart_rate, data = male_new) # creates linear 
+# regression model of predicted vo2 max levels against age AND weight AND heart rate,
+# when the gender is male
+
+summary(fit_m_new) # generates regression model output
+
+tidy(fit_m_new, conf.int = TRUE) # generates tidier regression model output
+
+```
+
+Removing the influential data point increased the R squared value by 0.0196, increasing the strength of the correlation, but not by enough to warrant a rethink of the formula.
+
+***
+***
+
+## Females
+
+***
+
+```{r new model female}
+
+female_new <- female %>%
+  filter(subject_id != "2",
+         subject_id != "28",
+         subject_id != "68")
+
+fit_f_new <- lm(vo2_max ~ age + weight + heart_rate, data = female_new) # creates linear
+# regression model of predicted vo2 max levels against age AND weight AND heart rate, 
+# when the gender is female
+
+summary(fit_f_new) # generates regression model output
+
+tidy(fit_f_new, conf.int = TRUE) # generates tidier regression model output
+
+```
+
+Removing the influential data points increased the R squared value by 0.2002, dramatically increasing the strength of the correlation. In the case of the female regression equation, predicted values will be taken from this new model, with the new formula being **V = -0.058A + -0.538W + -0.177H + 103.026**.
+
+***
+***
+
+# Homoscedasticity
+
+***
+
+## Males
+
+***
+
+```{r male homoscedasticity, message=FALSE, echo=FALSE, fig.align='center'}
+
+res_m <- residuals(fit_m)
+
+fitted_m <- predict(fit_m)
+
+ggplot(NULL, aes(fitted_m, res_m)) +
+  geom_point(colour = "royalblue") +
+  geom_hline(yintercept = 0, colour = "red", linetype = "dashed") +
+  geom_smooth(se = FALSE, colour = "magenta")
+
+```
+
+
+The fact that there appears to be no sort of logical trend can imply that homoscedasticity is present, demonstrating that the residual x values have a constant variance.
+
+***
+***
+
+## Females
+
+***
+
+```{r female homoscedasticity, message=FALSE, echo=FALSE, fig.align='center'}
+
+res_f <- residuals(fit_f_new)
+
+fitted_f <- predict(fit_f_new)
+
+ggplot(NULL, aes(fitted_f, res_f)) +
+  geom_point(colour = "royalblue") +
+  geom_hline(yintercept = 0, colour = "red", linetype = "dashed") +
+  geom_smooth(se = FALSE, colour = "magenta")
+
+```
+
+The same applies to the female aspect of the data.
+
+***
+***
+
+# Normality of Residuals
+
+***
+***
+
+## Males
+
+***
+
+```{r male normal, echo=FALSE, fig.align='center'}
+
+ggplot(NULL, aes(res_m)) +
+  geom_histogram(colour = "forestgreen", fill = "darkturquoise", binwidth = 3)
+
+```
+
+***
+***
+
+## Females
+
+***
+
+```{r female normal, echo=FALSE, fig.align='center'}
+
+ggplot(NULL, aes(sample = res_f)) +
+  stat_qq(colour = "darkviolet") + stat_qq_line(colour = "hotpink")
+
+```
+
+***
+***
+
+### Interpretation
+
+***
+
+The male data exhibits normal distribution. For the most part, the female data exhibits normal distribution, apart from one or two data points. Referencing the "res_f" object plotted in the homoscedasticity graph, most of the data points were around 0, which is the case here.
+
+***
+***
+
+# Multicollinearity
+
+***
+***
+
+## Males
+
+***
+
+To test for multicollinearity, I will use the Variation Inflation Factor (VIF). The square root of the VIF indicates how much larger the standard error increases compared to if that that variable had 0 correlation to other predictors.
+
+***
+
+```{r male multicollinearity, echo=FALSE, fig.align='center'}
+
+sqrt(car::vif(fit_m))
+
+```
+
+***
+***
+
+## Females
+
+***
+
+```{r female multicollinearity, echo=FALSE, fig.align='center'}
+
+sqrt(car::vif(fit_f_new))
+
+```
+
+The recommended cut off point of the VIF is around 5. With the values of both the male female datasets being close to 1 it can be assumed that there is very little relationship between each explanatory variable, demonstrating a lack of multicollinearity, a positive sign.
+
+***
+***
+
+# Linearity
+
+***
+***
+
+To test for linearity, a partial regression model can be used. It plots each x variable against the response while taking into account trhe effect of the other x variables on the response.
+
+***
+
+## Males
+
+***
+
+```{r male linearity, echo=FALSE}
+
+car::avPlots(fit_m)
+
+```
+
+The appearance of a linear relationship in each graph confirms the presence of linearity, which meets one of the key assumptions.
+
+***
+***
+
+## Females
+
+***
+
+```{r female linearity, echo=FALSE}
+
+car::avPlots(fit_f_new)
+
+```
+
+The same applies here for the female data.
+
+***
+***
+
+# Interpretation
+
+***
+***
+
+The goal of this analysis was to develop an equation to estimate VO2 Max, using known values along with coefficients from the model created from the data. 
+
+This has resulted in two equations being generated:
+
+**V = -0.212A + -0.356W + -0.105H + 98.099** for males, and
+
+**V = -0.058A + -0.538W + -0.177H + 103.026** for females, where
+
+**V** = VO2 Max
+
+**A** = Age (years)
+
+**W** = Weight (kg)
+
+**H** = Heart Rate (bpm)
+
+In an example which puts this equation to work, what is the estimated VO2 max for a person that is 31 years old, female, weighs 68 kgs and has an average heart rate of 140bpm in the last quarter of a submaximal cycling test?
+
+```{r test equation}
+
+-0.058*31 + -0.538*68 + -0.177*140 + 103.026
+
+```
+
+The result is that she is likely to have a VO2 max of 39.864 mL/kg/min.
+
+What about a male example?
+
+Theoretical VO2 Max of a 24 year old male who weighs 74kg and has an average heart rate of 160bpm:
+
+```{r test equation 2}
+
+-0.212*24 + -0.356*74 + -0.105*160 + 98.099
+
+```
+
+He is likely to have a VO2 max of 49.867 mL/kg/min.
+
+
+The main limitation in this model is that the sample size was fairly small (63 males and 37 females), so it may not entirely accurately reflect real values. That being said, there's enough evidence to believe that the female equation is pretty accurate, given that the R-squared value is above the recommended threshold for meaningful data in biological disciplines. The same is true for the male equation but I feel that a larger sample size will provide a more accurate representation of the data, and therefore increase the reliability of this model. 
+
+Another limitation is that the VO2 max measurement is taken from a completely different activity (running instead of cycling). It is also possible that other factors can contribute to VO2 max, like lung capacity, medical conditions, perhaps even height. Further investigation is needed, that's for sure.  
